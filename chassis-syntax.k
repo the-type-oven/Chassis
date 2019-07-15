@@ -10,6 +10,6 @@ module CHASSIS-SYNTAX
                   | "fix" Var "." Term [binder]
 
     syntax Val ::= Bool
-                 | "\\" Id "." Term
+                 | "\\" Id "." Term [binder]
 endmodule
 
