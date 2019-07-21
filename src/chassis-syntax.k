@@ -1,26 +1,37 @@
 module CHASSIS-SYNTAX
     imports DOMAINS-SYNTAX
 
-    syntax Type ::= Id
-                  | Type "->" Type [right]
-                  | "bool"
-                  | "forall" Id "." Type [binder]
-                  | Type "*" Type
-                  | Type "+" Type
-                  | "(" Type ")" [bracket]
+    syntax Type    ::= TypeVar | TypeCon
+    syntax TypeVar ::= typeVar(Id)
+    syntax TypeCon ::= Type "->" Type [right]
+                     | "bool" | "int"
+                     | "forall" Id "." Type [binder]
+                     | prod(Type, Type)
+                     | sum(Type, Type)
+                     | "(" Type ")" [bracket]
 
     syntax Term ::= Val
                   | Var
                   | Term Term [left, strict(1)]
-                  | "if" Term "then" Term "else" Term
-                  | "fix" Id "." Term [binder]
+                  | Term "[" Type "]"
+                  | "if" Term "then" Term "else" Term [strict(1)]
+                  | "fix" Term
                   | "let" Id ":" Type "=" Term "in" Term [binder]
                   | "split" Term "as" Id "," Id "in" Term [binder]
                   | "<" Term "," Term ">"
+                  | "inl" Term
+                  | "inr" Term
+                  | "case" Term "of" "inl" Id "=>" Term "|" "inr" Id "=>" Term [binder]
                   | "(" Term ")" [bracket]
+                  | Term "*" Term [strict, left]
+                  > Term "+" Term [strict, left]
+                  | Term "-" Term [strict]
+                  > Term "=" Term [strict]
+                  | Term "<" Term [strict]
 
-    syntax Val ::= Bool
+    syntax Val ::= Bool | Int
                  | "\\" Id ":" Type "." Term [binder]
+                 | "/\\" Id "." Term [binder]
 
     syntax Var ::= Id
 
