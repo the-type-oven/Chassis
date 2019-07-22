@@ -1,0 +1,7 @@
+if true then
+    let x : bool = true
+    in x
+else
+    let y : bool = <true,false>
+    in split y as t,d in t
+

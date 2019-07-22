@@ -14,7 +14,7 @@ module CHASSIS-TYPING
 
     configuration <T>
                     <k> $PGM:Program </k>
-                    <tenv> .Map </tenv>
+                    <typeEnv> .Map </typeEnv>
                     <typeVars> .Set </typeVars>
                   </T>
 
@@ -25,6 +25,7 @@ module CHASSIS-TYPING
 
     rule I:Int => int
     rule B:Bool => bool
+
     rule if Cond then E1 else E2 => unify(Cond, bool) ~> unify(E1, E2) ~> E1
 
     rule E1 + E2 => unify(E1, int) ~> unify(E2, int) ~> int
@@ -43,20 +44,20 @@ module CHASSIS-TYPING
     rule unify(forall X . T1, forall Y . T2) => unify(T1, T2[X/Y])
 
     rule <k> \ X : T . E:Term => unify(E, ?TRet:Type) ~> T -> ?TRet ~> setTEnv(TEnv) ... </k>
-         <tenv> TEnv => TEnv[X <- T] </tenv>
+         <typeEnv> TEnv => TEnv[X <- T] </typeEnv>
 
     rule <k> /\ X . E => unify(E, ?TOut) ~> forall X . ?TOut ~> setTVars(TVars) ... </k>
          <typeVars> TVars => TVars SetItem(X) </typeVars>
 
     rule <k> X:Id => T:Type ... </k>
-         <tenv> ... X |-> T ... </tenv>
+         <typeEnv> ... X |-> T ... </typeEnv>
 
     rule E1 E2 => unify(E1, (?T1:Type -> ?T2:Type)) ~> unify(E2, ?T1) ~> ?T2
 
     rule fix Body => unify(Body, ?T1 -> ?T1) ~> ?T1
 
     rule <k> T:Type ~> (setTEnv(TEnv) => .) ...</k>
-         <tenv> _ => TEnv </tenv>
+         <typeEnv> _ => TEnv </typeEnv>
 
     rule <k> T:Type ~> (setTVars(TVars) => .) ...</k>
          <typeVars> _ => TVars </typeVars>

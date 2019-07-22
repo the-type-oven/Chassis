@@ -15,7 +15,7 @@ module CHASSIS-SYNTAX
                   | Term Term [left, strict(1)]
                   | Term "[" Type "]"
                   | "if" Term "then" Term "else" Term [strict(1)]
-                  | "fix" Term
+                  /* | "fix" Term */
                   | "let" Id ":" Type "=" Term "in" Term [binder]
                   | "split" Term "as" Id "," Id "in" Term [binder]
                   | "<" Term "," Term ">"
@@ -30,7 +30,9 @@ module CHASSIS-SYNTAX
                   | Term "<" Term [strict]
 
     syntax Val ::= Bool | Int
+                 | "λ" Id ":" Type "." Term [binder]
                  | "\\" Id ":" Type "." Term [binder]
+                 | "Λ" Id "." Term [binder]
                  | "/\\" Id "." Term [binder]
 
     syntax Var ::= Id
@@ -40,5 +42,7 @@ module CHASSIS-SYNTAX
     syntax Program ::= Term
 
     rule let X : T = E1 in E2 => (\X : T.E2) E1 [structural]
+    rule λ X : T . E => \ X : T . E             [structural]
+    rule Λ X . E => /\ X . E                    [structural]
 endmodule
 
