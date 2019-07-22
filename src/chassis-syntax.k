@@ -1,48 +1,72 @@
 module CHASSIS-SYNTAX
     imports DOMAINS-SYNTAX
 
-    syntax Type    ::= TypeVar | TypeCon
+    /*----------------------------------------------------------------------------------------------------------------------*/
+    /* Types */
+    /*----------------------------------------------------------------------------------------------------------------------*/
+
+    syntax Type ::= TypeVar | TypeVal | TypeCon | TypeDes
+
+    /* variables */
     syntax TypeVar ::= typeVar(Id)
-    syntax TypeCon ::= Type "->" Type [right]
-                     | "bool" | "int"
-                     | "forall" Id "." Type [binder]
+
+    /* values */
+    syntax TypeVal ::= "void" | "unit" | "bool" | "nat"
+
+    /* constructors */
+    syntax TypeCon ::= "(" Type ")" [bracket]
+                     | Type "->" Type
                      | prod(Type, Type)
                      | sum(Type, Type)
-                     | "(" Type ")" [bracket]
+                     | "forall" Id ":" Type "." Type [binder]
 
-    syntax Term ::= Val
-                  | Var
-                  | Term Term [left, strict(1)]
-                  | Term "[" Type "]"
-                  | "if" Term "then" Term "else" Term [strict(1)]
-                  /* | "fix" Term */
-                  | "let" Id ":" Type "=" Term "in" Term [binder]
-                  | "split" Term "as" Id "," Id "in" Term [binder]
-                  | "<" Term "," Term ">"
-                  | "inl" Term
-                  | "inr" Term
-                  | "case" Term "of" "inl" Id "=>" Term "|" "inr" Id "=>" Term [binder]
-                  | "(" Term ")" [bracket]
-                  | Term "*" Term [strict, left]
-                  > Term "+" Term [strict, left]
-                  | Term "-" Term [strict]
-                  > Term "=" Term [strict]
-                  | Term "<" Term [strict]
+    syntax TypeDes ::= Type Id
 
-    syntax Val ::= Bool | Int
-                 | "λ" Id ":" Type "." Term [binder]
-                 | "\\" Id ":" Type "." Term [binder]
-                 | "Λ" Id "." Term [binder]
-                 | "/\\" Id "." Term [binder]
+   /*----------------------------------------------------------------------------------------------------------------------*/
+   /* Expressions */
+   /*----------------------------------------------------------------------------------------------------------------------*/
 
-    syntax Var ::= Id
+    syntax Expr ::= ExprVal | ExprVar | ExprCon | ExprDes
 
-    syntax KVariable ::= Var
+    /* values */
+    syntax ExprVal ::= "()"
+                     | "true" | "false"
+                     | "O" | "S" Expr
+                     | "\\" Id ":" Type "." Expr [binder]
+                     | "/\\" Id "." Expr [binder]
 
-    syntax Program ::= Term
+    /* variables */
+    syntax ExprVar ::= Id
 
-    rule let X : T = E1 in E2 => (\X : T.E2) E1 [structural]
-    rule λ X : T . E => \ X : T . E             [structural]
-    rule Λ X . E => /\ X . E                    [structural]
+    /* constructors */
+    syntax ExprCon ::=
+                     | "(" Expr ")" [bracket]
+                     | "fix" Expr
+                     | "<" Expr "," Expr ">"
+                     | "inl" Expr
+                     | "inr" Expr
+                     | "let" Id ":" Type ":=" Expr "in" Expr [binder]
+
+    /* destructors */
+    syntax ExprDes ::=
+                     | Expr Expr [left, strict(1)]
+                     | Expr "[" Type "]"
+                     | "if" Expr "then" Expr "else" Expr [strict(1)]
+                     | "split" Expr "as" Id "," Id "in" Expr [binder]
+                     | "case" Expr "of" "inl" Id "=>" Expr "|" "inr" Id "=>" Expr [binder]
+
+   /*----------------------------------------------------------------------------------------------------------------------*/
+   /* Reduction Rules */
+   /*----------------------------------------------------------------------------------------------------------------------*/
+
+   rule let X : T := E1 in E2 => (\X : T . E2) E1 [structural]
+
+   /*----------------------------------------------------------------------------------------------------------------------*/
+   /* K-specifics */
+   /*----------------------------------------------------------------------------------------------------------------------*/
+
+    syntax KVariable ::= ExprVar
+
+    syntax Program ::= Expr
+
 endmodule
-

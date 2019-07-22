@@ -23,10 +23,15 @@ module CHASSIS-TYPING
                   | setTVars(Set)
                   | Type
 
-    rule I:Int => int
-    rule B:Bool => bool
+    /* fully evaluated */
+    rule E:void => void
+    rule E:unit => unit
+    rule E:bool => bool
+    rule E:nat  => nat
 
+    /* destructions */
     rule if Cond then E1 else E2 => unify(Cond, bool) ~> unify(E1, E2) ~> E1
+    
 
     rule E1 + E2 => unify(E1, int) ~> unify(E2, int) ~> int
     rule E1 - E2 => unify(E1, int) ~> unify(E2, int) ~> int
@@ -62,4 +67,3 @@ module CHASSIS-TYPING
     rule <k> T:Type ~> (setTVars(TVars) => .) ...</k>
          <typeVars> _ => TVars </typeVars>
 endmodule
-
