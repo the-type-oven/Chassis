@@ -1,15 +1,44 @@
-require "substitution.k"
-
 module CHASSIS-SYNTAX
     imports DOMAINS-SYNTAX
+
+    syntax Type    ::= TypeVar | TypeCon
+    syntax TypeVar ::= typeVar(Id)
+    syntax TypeCon ::= Type "->" Type [right]
+                     | "bool" | "int"
+                     | "forall" Id "." Type [binder]
+                     | prod(Type, Type)
+                     | sum(Type, Type)
+                     | "(" Type ")" [bracket]
 
     syntax Term ::= Val
                   | Var
                   | Term Term [left, strict(1)]
-                  | "if" Term "then" Term "else" Term
-                  | "fix" Var "." Term [binder]
+                  | Term "[" Type "]"
+                  | "if" Term "then" Term "else" Term [strict(1)]
+                  | "fix" Term
+                  | "let" Id ":" Type "=" Term "in" Term [binder]
+                  | "split" Term "as" Id "," Id "in" Term [binder]
+                  | "<" Term "," Term ">"
+                  | "inl" Term
+                  | "inr" Term
+                  | "case" Term "of" "inl" Id "=>" Term "|" "inr" Id "=>" Term [binder]
+                  | "(" Term ")" [bracket]
+                  | Term "*" Term [strict, left]
+                  > Term "+" Term [strict, left]
+                  | Term "-" Term [strict]
+                  > Term "=" Term [strict]
+                  | Term "<" Term [strict]
 
-    syntax Val ::= Bool
-                 | "\\" Id "." Term [binder]
+    syntax Val ::= Bool | Int
+                 | "\\" Id ":" Type "." Term [binder]
+                 | "/\\" Id "." Term [binder]
+
+    syntax Var ::= Id
+
+    syntax KVariable ::= Var
+
+    syntax Program ::= Term
+
+    rule let X : T = E1 in E2 => (\X : T.E2) E1 [structural]
 endmodule
 
