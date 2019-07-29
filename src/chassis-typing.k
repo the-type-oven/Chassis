@@ -23,47 +23,93 @@ module CHASSIS-TYPING
                   | setTVars(Set)
                   | Type
 
+    /*----------------------------------------------------------------------------------------------------------------------*/
+    /* Unifcation */
+    /*----------------------------------------------------------------------------------------------------------------------*/
+
     /* fully evaluated */
     rule E:void => void
     rule E:unit => unit
     rule E:bool => bool
     rule E:nat  => nat
 
-    /* destructions */
-    rule if Cond then E1 else E2 => unify(Cond, bool) ~> unify(E1, E2) ~> E1
-    
+    /* trivial */
+    unify (void, void) => .
+    unify (unit, unit) => .
+    unify (bool, bool) => .
+    unify (nat,  nat ) => .
 
-    rule E1 + E2 => unify(E1, int) ~> unify(E2, int) ~> int
-    rule E1 - E2 => unify(E1, int) ~> unify(E2, int) ~> int
-    rule E1 * E2 => unify(E1, int) ~> unify(E2, int) ~> int
-    rule E1 = E2 => unify(E1, int) ~> unify(E2, int) ~> bool
-    rule E1 < E2 => unify(E1, int) ~> unify(E2, int) ~> bool
-
+    /* type variables */
     rule <k> unify(typeVar(X:Id), typeVar(X:Id)) => . ... </k>
          <typeVars> ... SetItem(X) ... </typeVars>
-    rule unify(bool, bool) => .
-    rule unify(int, int) => .
-    rule unify(T1 -> T2, T3 -> T4) => unify(T1, T3) ~> unify(T2, T4)
-    rule unify(prod(T1, T2), prod(T3, T4)) => unify(T1, T3) ~> unify(T2, T4)
-    rule unify(sum(T1, T2), sum(T3, T4)) => unify(T1, T3) ~> unify(T2, T4)
-    rule unify(forall X . T1, forall Y . T2) => unify(T1, T2[X/Y])
 
-    rule <k> \ X : T . E:Term => unify(E, ?TRet:Type) ~> T -> ?TRet ~> setTEnv(TEnv) ... </k>
+    /* constructions */
+    rule unify(A -> B, C -> D)                      => unify(A, C) ~> unify(B, D)
+    rule unify(prod(A, B), prod(C, D))              => unify(A, C) ~> unify(B, D)
+    rule unify(sum(A, B), sum(C, D))                => unify(A, C) ~> unify(B, D)
+    rule unify(forall X : A . B, forall Y : C . D)  => unify(B, D) ~> unify(A, C[X/Y])
+
+    /* destructions */
+    rule unify(T1 X, T2 Y) => . /* TODO */
+
+    /*----------------------------------------------------------------------------------------------------------------------*/
+    /* Constructions */
+    /*----------------------------------------------------------------------------------------------------------------------*/
+
+    rule <k> \ X:Id : A:Type . E:Expr => unify(E, ?B:Type) ~>
+                                           A -> ?B ~>
+                                           setTEnv(Tenv) ... </k>
          <typeEnv> TEnv => TEnv[X <- T] </typeEnv>
 
-    rule <k> /\ X . E => unify(E, ?TOut) ~> forall X . ?TOut ~> setTVars(TVars) ... </k>
-         <typeVars> TVars => TVars SetItem(X) </typeVars>
+    rule <k> /\ A:Id . E:Expr => unify(E, ?B) ~>
+                                 forall X . ?B ~>
+                                 setTVars(TVars) ... </k>
+         <typeVars> TVars => TVars SetItem(A) </typeVars>
 
-    rule <k> X:Id => T:Type ... </k>
-         <typeEnv> ... X |-> T ... </typeEnv>
+    rule fix X:Expr => unify(X, ?A:Type -> ?A:Type) ~> ?A
 
-    rule E1 E2 => unify(E1, (?T1:Type -> ?T2:Type)) ~> unify(E2, ?T1) ~> ?T2
+    rule < X:Expr , Y:Expr > => prod(X, Y)
 
-    rule fix Body => unify(Body, ?T1 -> ?T1) ~> ?T1
+    rule inl X:Expr => sum(X, ?B:Type)
+    rule inr Y:Expr => sum(?A:Type, Y)
 
-    rule <k> T:Type ~> (setTEnv(TEnv) => .) ...</k>
-         <typeEnv> _ => TEnv </typeEnv>
+    rule let X:Expr : T:Type := E1:Expr in E2:Expr => (\X : T . E2) E1 [structural]
 
-    rule <k> T:Type ~> (setTVars(TVars) => .) ...</k>
-         <typeVars> _ => TVars </typeVars>
+    /*----------------------------------------------------------------------------------------------------------------------*/
+    /* Destructions */
+    /*----------------------------------------------------------------------------------------------------------------------*/
+
+    rule X:Expr Y:Expr => unify(X, (?A:Type -> ?B:Type)) ~>
+                          unify(Y, ?A) ~>
+                          ?B
+
+    rule X:Expr [A:Type] => unify(X, (/\ ?B:Type . E:Expr)) ~>
+                            unify(A, ?B) ~>
+                            ?E
+
+    rule if X:Expr then Y:Expr else Z:Expr => unify(X, bool) ~>
+                                              unify(Y, Z) ~>
+                                              Z
+
+    rule split P:Type as X:Id , Y:Id in Z:Expr => unify(P, < X , Y >) ~> . /* TODO */
+
+    rule case S of inl X => E | inr Y => F ~> . /* TODO */
+
+    /*----------------------------------------------------------------------------------------------------------------------*/
+    /* Type Judgements */
+    /*----------------------------------------------------------------------------------------------------------------------*/
+
+    rule <k> X:Id => A:Type ... </k>
+         <typeEnv> ... X |-> A ... </typeEnv>
+
+   /*----------------------------------------------------------------------------------------------------------------------*/
+   /* Terminations */
+   /*----------------------------------------------------------------------------------------------------------------------*/
+
+   rule <k> A:Type ~> (setTEnv(TEnv) => .) ... </k>
+        <typeEnv> _ => TEnv </typeEnv>
+
+   rule <k> A:Type ~> (setTVars(TVars) => .) ... </k>
+        <typeVars> _ => TVars </typeVars>
+
 endmodule

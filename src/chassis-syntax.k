@@ -39,27 +39,18 @@ module CHASSIS-SYNTAX
     syntax ExprVar ::= Id
 
     /* constructors */
-    syntax ExprCon ::=
-                     | "(" Expr ")" [bracket]
+    syntax ExprCon ::= "(" Expr ")" [bracket]
                      | "fix" Expr
                      | "<" Expr "," Expr ">"
-                     | "inl" Expr
-                     | "inr" Expr
+                     | "inl" Expr | "inr" Expr
                      | "let" Id ":" Type ":=" Expr "in" Expr [binder]
 
     /* destructors */
-    syntax ExprDes ::=
-                     | Expr Expr [left, strict(1)]
+    syntax ExprDes ::= Expr Expr [left, strict(1)]
                      | Expr "[" Type "]"
                      | "if" Expr "then" Expr "else" Expr [strict(1)]
                      | "split" Expr "as" Id "," Id "in" Expr [binder]
                      | "case" Expr "of" "inl" Id "=>" Expr "|" "inr" Id "=>" Expr [binder]
-
-   /*----------------------------------------------------------------------------------------------------------------------*/
-   /* Reduction Rules */
-   /*----------------------------------------------------------------------------------------------------------------------*/
-
-   rule let X : T := E1 in E2 => (\X : T . E2) E1 [structural]
 
    /*----------------------------------------------------------------------------------------------------------------------*/
    /* K-specifics */
