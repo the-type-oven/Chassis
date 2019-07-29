@@ -29,9 +29,9 @@ module CHASSIS-SYNTAX
     syntax Expr ::= ExprVal | ExprVar | ExprCon | ExprDes
 
     /* values */
-    syntax ExprVal ::= "()"
+    syntax ExprVal ::= "u"
                      | "true" | "false"
-                     | "O" | "S" Expr
+                     | "o" | "s" Expr
                      | "\\" Id ":" Type "." Expr [binder]
                      | "/\\" Id "." Expr [binder]
 
