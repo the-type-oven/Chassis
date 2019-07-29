@@ -1,3 +1,4 @@
 .*.swp
 *kompiled/*
+.DS_Store
 
